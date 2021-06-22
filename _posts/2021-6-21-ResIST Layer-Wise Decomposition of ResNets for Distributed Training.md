@@ -111,14 +111,18 @@ By simply pre-training a model for a few epochs with local SGD, the remainder of
 
 ### Small-Scale Image Classification
 
+{% include image.html url="/images/resist/table_2.png" description="Table 2: Test accuracy of baseline LocalSGD versus ResIST on small-scale image classification datasets." %}
+
 #### Accuracy.
 The test accuracy of models trained with both **ResIST** and local SGD on small-scale image classification datasets is listed in Table 2.
 **ResIST achieves comparable test accuracy in all cases where the same number of machines are used.**
 Additionally, **ResIST** outperforms localSGD on CIFAR100 experiments with eight machines.
 The performance of **ResIST** and local SGD are strikingly similar in terms of test accuracy.
 In fact, the performance gap between the two method does not exceed 1\% in any experimental setting.
-Furthermore, **ResIST** performance remains stable as the number of sub-ResNets increases, allowing greater acceleration to be achieved without degraded performance (e.g., see CIFAR100 results in Table \ref{cifar10_results}).
+Furthermore, **ResIST** performance remains stable as the number of sub-ResNets increases, allowing greater acceleration to be achieved without degraded performance (e.g., see CIFAR100 results in Table 2).
 Generally, using four sub-ResNets yields the best performance with **ResIST**.
+
+{% include image.html url="/images/resist/table_3.png" description="Table 3: Total training time in seconds of baseline models and models trained with ResIST on small-scale image classification datasets." %}
 
 #### Efficiency.
 In addition to achieving comparable test accuracy to local SGD, **ResIST** significantly accelerates training.
