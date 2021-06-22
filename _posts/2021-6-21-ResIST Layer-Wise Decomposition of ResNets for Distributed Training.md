@@ -136,7 +136,7 @@ We conjecture that for cases with higher communication cost at each synchronizat
 A visualization of the speedup provided by **ResIST** on the CIFAR10 and CIFAR100 datasets is illustrated in Fig. 4.
 From these experiments, it is clear that the communication-efficiency of **ResIST** allows the benefit of more devices to be better realized in the distributed setting. 
 
-{% include image.html url="/images/resist/cifar10_timing.png" description="Figure 4: Both methodologies complete 160 epochs of training. Accuracy values are smoothed using a 1-D gaussian filter, and shaded regions represent deviations in accuracy." %}
+{% include image.html url="/images/resist/cifar10_timing.pdf" description="Figure 4: Both methodologies complete 160 epochs of training. Accuracy values are smoothed using a 1-D gaussian filter, and shaded regions represent deviations in accuracy." %}
 
 ### Large-Scale Image Classification
 #### Accuracy. 
