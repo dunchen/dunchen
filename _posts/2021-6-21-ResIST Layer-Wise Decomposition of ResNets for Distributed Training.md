@@ -65,6 +65,8 @@ Following independent training, the updates from each sub-ResNet are aggregated 
 If a parameter is only partitioned to a single sub-ResNet, aggregation simplifies to copying the parameter into the global model.
 After aggregation, layers from the global model are re-partitioned randomly to create a new group of sub-ResNets, and this entire process is repeated.
 
+{% include image.html url="/images/resist/Decentralized (1).png" description="Figure 3: A depiction of the decentralized repartition procedure. This example partitions a ResNet with eight blocks into four different sub-ResNets. The blue-green-red squares dictate the data that lies per worker; the orange column dictates the last classification layer. As seen in the figure, each worker (from initialization partition to local training and decentralized repartition) is responsible for only a fraction of parameters of the whole network. The whole ResNet is never fully stored, communicated or updated on a single worker during training." %}
+
 ### Implementation Details
 
 We provide an implementation of **ResIST** in PyTorch, using the NCCL communication package. 
@@ -131,5 +133,23 @@ Wall-clock training times for four and eight machine experiments are presented i
 **ResIST** provides 3.58x to 3.81x speedup in comparison to local SGD.
 For eight machine experiments, a significant speedup over four machine experiments is not observed due to the minimum depth requirement and a reduction in the number of local iterations to improve training stability.
 We conjecture that for cases with higher communication cost at each synchronization and a similar number of synchronizations, eight worker **ResIST** could lead to more significant speedups in comparison to the four worker case. 
+A visualization of the speedup provided by **ResIST** on the CIFAR10 and CIFAR100 datasets is illustrated in Fig. 4.
+From these experiments, it is clear that the communication-efficiency of **ResIST** allows the benefit of more devices to be better realized in the distributed setting. 
 
+{% include image.html url="/images/resist/figure_4.png" description="Figure 4: Both methodologies complete 160 epochs of training. Accuracy values are smoothed using a 1-D gaussian filter, and shaded regions represent deviations in accuracy." %}
 
+### Large-Scale Image Classification
+#### Accuracy. 
+The test accuracy of models trained with both **ResIST** and local SGD for different numbers of machines on the ImageNet dataset is listed in Table 4.
+As can be seen, **ResIST achieves comparable test accuracy (<2% difference) to local SGD in all cases where the same number of machines are used.**
+As many current image classification models overfit to the ImageNet test set and cannot generalize well to new data, models trained with both local SGD and **ResIST** are also evaluated on three different Imagenet V2 testing sets.
+As shown in Table 4, **ResIST** consistently achieves comparable test accuracy in comparison to local SGD on these supplemental test sets. 
+
+{% include image.html url="/images/resist/table_4.png" description="Table 4: Performance of baseline models and models trained with ResIST on 1K Imagenet. MF stands for test set MatchedFrequency and was sampled to match the MTurk selection frequency distribution of the original ImageNet validation set for each class; T-0.7 stands for test set Threshold0.7 and was built by sampling ten images for each class among the candidates with selection frequency at least 0.7; TI stands for test set TopImages and contains the ten images with highest selection frequency in our candidate pool for each class." %}
+
+#### Efficiency. 
+As shown in Tables 4, **ResIST** significantly accelerates the ImageNet training process.
+However, due to the use of fewer local iterations and the local SGD warm-up phase, the speedup provided by **ResIST** is smaller relative to experiments on small-scale datasets.
+In Table 5, it is shown that **ResIST** can reduce the total communication volume during training, which is an important feature in the implementation of distributed systems with high computational costs.
+
+{% include image.html url="/images/resist/table_5.png" description="Table 5: Total training time on Imagenet (in hours) of models trained with both local SGD and ResIST using two and four machines to reach a fixed test accuracy." %}
