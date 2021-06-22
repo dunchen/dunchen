@@ -1,7 +1,8 @@
 ---
 layout: post
+title: ResIST&#58; Layer-Wise Decomposition of ResNets for Distributed Training
 ---
-%ResIST: Layer-Wise Decomposition of ResNets for Distributed Training
+
 
 ## Abstract
 We propose **ResIST**, a novel distributed training protocol for Residual Networks (ResNets). **ResIST** randomly decomposes a global ResNet into several shallow sub-ResNets that are trained independently in a distributed manner for several local iterations, before having their updates synchronized and aggregated into the global model. In the next round, new sub-ResNets are randomly generated and the process repeats. By construction, per iteration, **ResIST** communicates only a small portion of network parameters to each machine and never uses the full model during training. Thus, **ResIST** reduces the communication, memory, and time requirements of ResNet training to only a fraction of the requirements of previous methods. In comparison to common protocols like data-parallel training and data-parallel training with local SGD, **ResIST** yields a decrease in wall-clock training time, while being competitive with respect to model performance.
