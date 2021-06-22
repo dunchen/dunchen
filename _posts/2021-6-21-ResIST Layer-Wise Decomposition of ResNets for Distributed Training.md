@@ -98,7 +98,7 @@ To solve this issue, **ResIST** enforces a minimum depth requirement, which is s
 
 #### Tuning Local Iterations.
 
-We use a default value of $l=50$, as $l<50$ did not noticeably improve performance.
+We use a default value of l=50, as l<50 did not noticeably improve performance.
 In some cases, the performance of **ResIST** can be improved by tuning $l$.
 The optimal setting of $l$ within **ResIST** is further explored in our paper.
 
@@ -128,7 +128,7 @@ Generally, using four sub-ResNets yields the best performance with **ResIST**.
 In addition to achieving comparable test accuracy to local SGD, **ResIST** significantly accelerates training.
 This acceleration is due to i) fewer parameters being communicated between machines and ii) locally-trained sub-ResNets being shallower than the global model.
 Wall-clock training times for four and eight machine experiments are presented in Tables 3. 
-**ResIST** provides $3.58$ to $3.81\times$ speedup in comparison to local SGD.
+**ResIST** provides 3.58x to 3.81x speedup in comparison to local SGD.
 For eight machine experiments, a significant speedup over four machine experiments is not observed due to the minimum depth requirement and a reduction in the number of local iterations to improve training stability.
 We conjecture that for cases with higher communication cost at each synchronization and a similar number of synchronizations, eight worker **ResIST** could lead to more significant speedups in comparison to the four worker case. 
 
