@@ -59,7 +59,7 @@ Table 1 shows the comparison of local SGD to **ResIST** with respect to the amou
 
 The **ResIST** training procedure is outlined in Algorithm 1.
 
-After constructing the sub-ResNets (i.e., **subResNets** in Algorithm 1), they are trained independently in a distributed manner (i.e., each on separate GPUs with different batches of data) for $\ell$ iterations.
+After constructing the sub-ResNets (i.e., **subResNets** in Algorithm 1), they are trained independently in a distributed manner (i.e., each on separate GPUs with different batches of data) for l iterations.
 
 Following independent training, the updates from each sub-ResNet are aggregated into the global model. Aggregation (i.e., **aggregate** in Algorithm 1) sets each global network parameter to its average value across the sub-ResNets to which it was partitioned.
 If a parameter is only partitioned to a single sub-ResNet, aggregation simplifies to copying the parameter into the global model.
@@ -77,7 +77,7 @@ We adopt the same communication procedure for the local SGD baseline (i.e., **br
 As shown in Fig. 3, during the synchronization and repartition step following local training, each sub-ResNet will directly send each of its locally-updated blocks to the designated new sub-ResNet (i.e., the parameters are not sent to an intermediate parameter server).
 At any time step, each worker will only need sufficient memory to store a single sub-ResNet, thus limiting the memory requirements.
 Such a decentralized implementation allows parallel communication between sub-ResNets, which leads to further speedups by preventing any single machine from causing slow-downs due to communication bottlenecks in the distributed procedure.
-The implementation is easily scalable to eight or more machines, either on nodes with multiple GPUs or across distributed nodes with dedicated GPUs. % as it is possible for the training to be distributed across multiple GPUs on a single node, as well as across several compute nodes.
+The implementation is easily scalable to eight or more machines, either on nodes with multiple GPUs or across distributed nodes with dedicated GPUs. 
 
 **This work is focused on the algorithmic level of distributed ResNet training.**
 **ResIST** significantly reduces the number of bits communicated at each synchronization round and accelerates local training with the use of shallow sub-ResNets.
@@ -98,9 +98,9 @@ To solve this issue, **ResIST** enforces a minimum depth requirement, which is s
 
 #### Tuning Local Iterations.
 
-We use a default value of $\ell=50$, as $\ell<50$ did not noticeably improve performance.
-In some cases, the performance of **ResIST** can be improved by tuning $\ell$.
-The optimal setting of $\ell$ within **ResIST** is further explored in our paper.
+We use a default value of $l=50$, as $l<50$ did not noticeably improve performance.
+In some cases, the performance of **ResIST** can be improved by tuning $l$.
+The optimal setting of $l$ within **ResIST** is further explored in our paper.
 
 #### Local SGD Warm-up Phase.
 Directly applying **ResIST** may harm performance on some large-scale datasets (e.g., ImageNet).
@@ -118,7 +118,7 @@ The test accuracy of models trained with both **ResIST** and local SGD on small-
 **ResIST achieves comparable test accuracy in all cases where the same number of machines are used.**
 Additionally, **ResIST** outperforms localSGD on CIFAR100 experiments with eight machines.
 The performance of **ResIST** and local SGD are strikingly similar in terms of test accuracy.
-In fact, the performance gap between the two method does not exceed 1\% in any experimental setting.
+In fact, the performance gap between the two method does not exceed 1% in any experimental setting.
 Furthermore, **ResIST** performance remains stable as the number of sub-ResNets increases, allowing greater acceleration to be achieved without degraded performance (e.g., see CIFAR100 results in Table 2).
 Generally, using four sub-ResNets yields the best performance with **ResIST**.
 
