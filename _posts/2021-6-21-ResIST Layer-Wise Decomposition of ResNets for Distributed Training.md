@@ -26,7 +26,7 @@ The outcome of this work can be summarized as follows:
 
 ## Methods
 
-**ResIST** operates by partitioning the layers of a global ResNet to different, shallower sub-ResNets, training those independently, and intermittently aggregating their updates into the global model. The high-level process followed by **ResIST** is depicted in Fig 1 and outlined in more detail by pusedocode below.
+**ResIST** operates by partitioning the layers of a global ResNet to different, shallower sub-ResNets, training those independently, and intermittently aggregating their updates into the global model. The high-level process followed by **ResIST** is depicted in Fig 1 and outlined in more detail by Algorithm 1 below.
 
 ### Model Architecture
 To achieve optimal performance with **ResIST**, the global model must be sufficiently deep.
@@ -54,3 +54,78 @@ The shallow sub-ResNets created by **ResIST** accelerate training and reduce com
 Table 1 shows the comparison of local SGD to **ResIST** with respect to the amount of data communicated during each synchronization round for different numbers of machines, highlighting the superior communication-efficiency of **ResIST**.
 
 {% include image.html url="/images/resist/table_1.png" description="Table 1: Reports the amount of data communicated during each communication round (in GB) of both local SGD and ResIST across different numbers of machines with ResNet101." %}
+
+### Distributed Training
+
+The **ResIST** training procedure is outlined in Algorithm 1.
+
+After constructing the sub-ResNets (i.e., **subResNets** in Algorithm 1), they are trained independently in a distributed manner (i.e., each on separate GPUs with different batches of data) for $\ell$ iterations.
+
+Following independent training, the updates from each sub-ResNet are aggregated into the global model. Aggregation (i.e., **aggregate** in Algorithm 1) sets each global network parameter to its average value across the sub-ResNets to which it was partitioned.
+If a parameter is only partitioned to a single sub-ResNet, aggregation simplifies to copying the parameter into the global model.
+After aggregation, layers from the global model are re-partitioned randomly to create a new group of sub-ResNets, and this entire process is repeated.
+
+### Implementation Details
+
+We provide an implementation of **ResIST** in PyTorch, using the NCCL communication package. 
+We use basic **broadcast** and **reduce** operations for communicating blocks in the third section and **all reduce** for blocks in other sections.
+
+We adopt the same communication procedure for the local SGD baseline (i.e., **broadcast** and **reduce** for the third section and **all reduce** for others) to ensure fair comparison.  
+
+**The implementation of ResIST is decentralized, meaning that it does not assume a single, central parameter server.**
+
+As shown in Fig. 3, during the synchronization and repartition step following local training, each sub-ResNet will directly send each of its locally-updated blocks to the designated new sub-ResNet (i.e., the parameters are not sent to an intermediate parameter server).
+At any time step, each worker will only need sufficient memory to store a single sub-ResNet, thus limiting the memory requirements.
+Such a decentralized implementation allows parallel communication between sub-ResNets, which leads to further speedups by preventing any single machine from causing slow-downs due to communication bottlenecks in the distributed procedure.
+The implementation is easily scalable to eight or more machines, either on nodes with multiple GPUs or across distributed nodes with dedicated GPUs. % as it is possible for the training to be distributed across multiple GPUs on a single node, as well as across several compute nodes.
+
+**This work is focused on the algorithmic level of distributed ResNet training.**
+**ResIST** significantly reduces the number of bits communicated at each synchronization round and accelerates local training with the use of shallow sub-ResNets.
+The authors are well-aware of many highly-optimized versions of data-parallel and synchronous training methodologies. 
+**ResIST** is fully compatible with these frameworks and can be further accelerated by leveraging highly-optimized distributed communication protocols at the systems level, which we leave as future work.
+
+### Supplemental Techniques
+
+#### Scaling Activations.
+
+Activations must be scaled appropriately to account for the full depth of the resulting network at test time.
+To handle this, the output of residual blocks in the third section of the network are scaled by 1/S, where S is the total number of sub-ResNets.
+Such scaling allows the global model to perform well, despite using all layers at test time. 
+
+#### Subnetwork Depth.
+Within **ResIST**, sub-ResNets may become too shallow as the number of sub-ResNets increases.
+To solve this issue, **ResIST** enforces a minimum depth requirement, which is satisfied by sharing certain blocks between multiple sub-ResNets.
+
+#### Tuning Local Iterations.
+
+We use a default value of $\ell=50$, as $\ell<50$ did not noticeably improve performance.
+In some cases, the performance of **ResIST** can be improved by tuning $\ell$.
+The optimal setting of $\ell$ within **ResIST** is further explored in our paper.
+
+#### Local SGD Warm-up Phase.
+Directly applying **ResIST** may harm performance on some large-scale datasets (e.g., ImageNet).
+To solve this issue, we perform a few epochs with data parallel local SGD before training the model with **ResIST**.
+By simply pre-training a model for a few epochs with local SGD, the remainder of training can be completed using **ResIST** without causing a significant performance decrease.
+
+## Results
+
+### Small-Scale Image Classification
+
+#### Accuracy.
+The test accuracy of models trained with both **ResIST** and local SGD on small-scale image classification datasets is listed in Table 2.
+**ResIST achieves comparable test accuracy in all cases where the same number of machines are used.**
+Additionally, **ResIST** outperforms localSGD on CIFAR100 experiments with eight machines.
+The performance of **ResIST** and local SGD are strikingly similar in terms of test accuracy.
+In fact, the performance gap between the two method does not exceed 1\% in any experimental setting.
+Furthermore, **ResIST** performance remains stable as the number of sub-ResNets increases, allowing greater acceleration to be achieved without degraded performance (e.g., see CIFAR100 results in Table \ref{cifar10_results}).
+Generally, using four sub-ResNets yields the best performance with **ResIST**.
+
+#### Efficiency.
+In addition to achieving comparable test accuracy to local SGD, **ResIST** significantly accelerates training.
+This acceleration is due to i) fewer parameters being communicated between machines and ii) locally-trained sub-ResNets being shallower than the global model.
+Wall-clock training times for four and eight machine experiments are presented in Tables 3. 
+**ResIST** provides $3.58$ to $3.81\times$ speedup in comparison to local SGD.
+For eight machine experiments, a significant speedup over four machine experiments is not observed due to the minimum depth requirement and a reduction in the number of local iterations to improve training stability.
+We conjecture that for cases with higher communication cost at each synchronization and a similar number of synchronizations, eight worker **ResIST** could lead to more significant speedups in comparison to the four worker case. 
+
+
