@@ -65,7 +65,7 @@ Following independent training, the updates from each sub-ResNet are aggregated 
 If a parameter is only partitioned to a single sub-ResNet, aggregation simplifies to copying the parameter into the global model.
 After aggregation, layers from the global model are re-partitioned randomly to create a new group of sub-ResNets, and this entire process is repeated.
 
-{% include image.html url="/images/resist/Decentralized (1).png" description="Figure 3: A depiction of the decentralized repartition procedure. This example partitions a ResNet with eight blocks into four different sub-ResNets. The blue-green-red squares dictate the data that lies per worker; the orange column dictates the last classification layer. As seen in the figure, each worker (from initialization partition to local training and decentralized repartition) is responsible for only a fraction of parameters of the whole network. The whole ResNet is never fully stored, communicated or updated on a single worker during training." %}
+{% include image.html url="/images/resist/Decentralized (1).pdf" description="Figure 3: A depiction of the decentralized repartition procedure. This example partitions a ResNet with eight blocks into four different sub-ResNets. The blue-green-red squares dictate the data that lies per worker; the orange column dictates the last classification layer. As seen in the figure, each worker (from initialization partition to local training and decentralized repartition) is responsible for only a fraction of parameters of the whole network. The whole ResNet is never fully stored, communicated or updated on a single worker during training." %}
 
 ### Implementation Details
 
